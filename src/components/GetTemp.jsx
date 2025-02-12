@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getTemperature } from "../apiClient";
+import { useLog } from "../LogProvider";
+
 
 import { Line } from 'react-chartjs-2';
 import "chart.js/auto";
@@ -7,7 +9,9 @@ import "chart.js/auto";
 /**
  * Displays a button to get and show the temperature of the camera
  */
-function GetTemp({currTemp, setCurrTemp, isDisabled}) {
+function GetTemp({ currTemp, setCurrTemp, isDisabled }) {
+
+  const { log, setLog } = useLog();
 
   let NUM_OF_DATA_POINTS = 20;
   let tempMessage = <span className='tempMessage'>Current Temperature: -999 °C</span>;
@@ -38,7 +42,7 @@ function GetTemp({currTemp, setCurrTemp, isDisabled}) {
   useEffect(() => {
     if (graphDelay === -1) return;
     const interval = setInterval(() => {
-      const temperaturePromise = getTemperature();
+      const temperaturePromise = getTemperature(setLog);
       temperaturePromise.then(val => {
         const temperature = JSON.parse(val);
         const tempNum = parseFloat(temperature["temperature"]);
@@ -59,7 +63,8 @@ function GetTemp({currTemp, setCurrTemp, isDisabled}) {
   }, [dateArray, tempDataArray, setCurrTemp, graphDelay, NUM_OF_DATA_POINTS]);
 
   async function callGetTemperature() {
-    const temperature = JSON.parse(await getTemperature());
+    const temperature = JSON.parse(await getTemperature(setLog));
+    console.log(temperature);
     // Round the number
     const tempNum = parseFloat(temperature["temperature"]);
     const rounded = Math.round((tempNum + Number.EPSILON) * 100) / 100;

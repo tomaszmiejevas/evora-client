@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getStatus } from "./apiClient";
+import { useLog } from "./LogProvider";
 
 import './App.css';
 import './Layout.css';
@@ -61,6 +62,8 @@ function App() {
   const fullScreenHandler = () => {
     checkFullScreen() ? exitFullscreen() : enterFullScreen();
   };
+
+  const { log, setLog } = useLog();
 
   // Repetitive from Exposure controls
   function formatTime(seconds) {
@@ -173,7 +176,7 @@ function App() {
         <ExposureTypeSelector exposureType={exposureType} setExposureType={setExposureType} isDisabled={disableControls || !initialized}/>
         <FilterTypeSelector filterType={filterType} setFilterType={setFilterType} isDisabled={disableControls || !initialized}/>
         <SetTemp temp={temp} setTemp={setTemp} isDisabled={disableControls || !initialized}/>
-        <GetTemp currTemp={currTemp} setCurrTemp={setCurrTemp} isDisabled={!initialized}/>
+        <GetTemp currTemp={currTemp} setCurrTemp={setCurrTemp} isDisabled={!initialized} />
         <ExposureControls
           exposureType={exposureType}
           imageType={imageType}
@@ -298,18 +301,7 @@ function App() {
             </div>
           </div>
           <div className="logContainer">
-            <p style={{color: 'red'}}>vv Dummy data vv</p>
-            <p>[21/Dec/2024 03:34:15] "GET /getStatus HTTP/1.1" 200 - /getStatus HTTP/1.1" 200</p>
-            <p>[21/Dec/2024 03:34:15] "GET /getStatus HTTP/1.1" 200 -</p>
-            <p>[21/Dec/2024 03:34:15] "GET /getStatus HTTP/1.1" 200 -</p>
-            <p>[21/Dec/2024 03:34:15] "GET /getStatus HTTP/1.1" 200 -</p>
-            <p>[21/Dec/2024 03:34:15] "GET /getStatus HTTP/1.1" 200 -</p>
-            <p>[21/Dec/2024 03:34:15] "GET /getStatus HTTP/1.1" 200 -</p>
-            <p>[21/Dec/2024 03:34:15] "GET /getStatus HTTP/1.1" 200 -</p>
-            <p>[21/Dec/2024 03:34:15] "GET /getStatus HTTP/1.1" 200 -</p>
-            <p>[21/Dec/2024 03:34:15] "GET /getStatus HTTP/1.1" 200 -</p>
-            <p>[21/Dec/2024 03:34:15] "GET /getStatus HTTP/1.1" 200 -</p>
-            <p>[21/Dec/2024 03:34:15] "GET /getStatus HTTP/1.1" 200 -</p>
+          {log.map((item, index) => <p key={index}>{item}</p>)}
           </div>
         </div>}
         <div className='mainPanel' style={{ minHeight: infoBarHidden ? '97vh' : '75vh' }}>

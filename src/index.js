@@ -3,13 +3,16 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { LogProvider } from "./LogProvider"; 
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 // JSX - code that looks like HTML but is inside JavaScript
 root.render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>
+    <LogProvider>
+      <App />
+    </LogProvider>
+  </React.StrictMode>,
 );
 
 // npx create-react-app@latest uwmro-client
