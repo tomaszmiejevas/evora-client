@@ -65,6 +65,7 @@ function App() {
 
   const { log, setLog } = useLog();
 
+
   // Repetitive from Exposure controls
   function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
@@ -301,7 +302,7 @@ function App() {
             </div>
           </div>
           <div className="logContainer">
-          {log.map((item, index) => <p key={index}>{item}</p>)}
+          {log.slice(0, 20).map((item, index) => <p key={index} className="logEntry"><span>&gt;</span>{item}</p>)}
           </div>
         </div>}
         <div className='mainPanel' style={{ minHeight: infoBarHidden ? '97vh' : '75vh' }}>
