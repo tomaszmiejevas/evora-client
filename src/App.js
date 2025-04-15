@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getStatus } from "./apiClient";
 import { useLog } from "./LogProvider";
 
@@ -214,10 +214,49 @@ function App() {
     </>
   )
 
+  const [active, setActive] = useState([true, true, true])
+  const logFilterLabels = ['Camera', 'Filters', 'Teslescope'];
+  const [logPeriod, setLogPeriod] = useState(4)
+
+  const toggleButton = (index) => {
+    const newState = [...active];
+    newState[index] = !newState[index];
+    setActive(newState);
+  };
+
+  const selectedCategories = logFilterLabels.filter((_, i) => active[i]);
+
+  console.log(selectedCategories)
+
+  const filteredLog = log.filter(item => {
+    const ageInHours = (Date.now() - new Date(item.date)) / (1000 * 60 * 60);
+    const matchesCategory = selectedCategories.includes(item.category);
+    return matchesCategory && ageInHours <= logPeriod;
+  });
+
+  const downloadFilteredLog = () => {
+    const content = filteredLog
+      .map(item => {
+        const time = new Date(item.date).toLocaleTimeString('en-GB', { hour12: false });
+        return `[${time}] [${item.category}] [${item.type}] ${item.message}`;
+      })
+      .join('\n');
+  
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+  
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'filtered-log.txt';
+    a.click();
+  
+    URL.revokeObjectURL(url);
+  };
+
   const settingsComponent = (
     <>
       <h2 style={{ margin: '10px'}}>Settings</h2>
-      <div style={{ margin: '30px', float: 'left'}}>
+      <div style={{ margin: '30px', display: 'flex', gap: '20px', flexDirection: 'column', alignItems: 'flex-start'}}>
         <div>Show Info Panel
           <input type="checkbox" checked={!infoBarHidden} onChange={() => setInforBarHidden(!infoBarHidden)}/>
         </div><br />
@@ -225,8 +264,70 @@ function App() {
           <button className="fsBtn" onClick={fullScreenHandler}>{isFullScreen ? 'Exit' : 'Enter'}</button>
         </div>
       </div>
+      <h2>Log</h2>
+      <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginTop: '20px' }}>
+      {logFilterLabels.map((text, i) => (
+        <button
+          key={i}
+          onClick={() => toggleButton(i)}
+          style={{
+            padding: '10px 20px',
+            backgroundColor: active[i] ? 'limegreen' : '#ccc',
+            border: '1px solid #999',
+            cursor: 'pointer',
+          }}
+        >
+          {text}
+        </button>
+      ))}
+    </div>
+    <div style={{ marginTop: '10px' }}>
+      <span>Log period: </span>
+      <select onChange={(e) => setLogPeriod(parseInt(e.target.value))} defaultValue={'4'}>
+        <option value={1}>Last hour</option>
+        <option value={4}>Last 4 hours</option>
+        <option value={24}>Last 24 hours</option>
+        <option value={168}>Last 7 days</option>
+      </select>
+    </div>
+    <button className="logDownloadBtn" onClick={downloadFilteredLog} style={{ marginTop: '15px' }}>Download Log</button>
+    <div className="logContainer" style={{ marginTop: '20px' }}>
+      {filteredLog.map((item, index) => 
+        <p className="logEntry" key={`${item}-${index}`}>
+          <span>&gt;</span> [{new Date(item.date).toLocaleTimeString('en-GB', { hour12: false })}] {item.type} {item.message}
+        </p>
+      )}
+    </div>
     </>
   )
+
+  const logContainerRef = useRef(null);
+  const prevLogLength = useRef(log.length);
+
+// On new log entry
+useEffect(() => {
+  if (log.length > prevLogLength.current && log.length > 0) {
+    const container = logContainerRef.current;
+    if (!container) return;
+
+    const newest = container.querySelector('.logEntry:first-child');
+    if (newest) {
+      newest.classList.remove('animate-entry');
+      void newest.offsetWidth;
+      newest.classList.add('animate-entry');
+    }
+  }
+  
+  prevLogLength.current = log.length;
+}, [log]);
+
+useEffect(() => {
+  const container = logContainerRef.current;
+  if (container) {
+    const entryHeight = container.querySelector('.logEntry')?.offsetHeight || 27;
+    container.style.setProperty('--entry-height', `${entryHeight}px`);
+  }
+}, []);
 
   return (
     <div className="container">
@@ -279,7 +380,7 @@ function App() {
         <div className='infoPanel'>
           <div>
             <span>Camera</span>
-            <div class="infoBarGrid">
+            <div className="infoBarGrid">
               <div><span>Temperature:</span><span style={{ color: initialized ? '#5bcc09' : '' }}>{initialized ? currTemp + ' C°' : 'N/A'}</span></div>
               <div><span>Filter:</span><span style={{ color: initialized ? '#5bcc09' : 'orange' }}>{filterType}</span></div>
               <div><span>Time left:</span><span style={{ color: initialized ? '#5bcc09' : '' }}>{initialized ? formatTime(currTimer) : 'N/A'}</span></div>
@@ -288,7 +389,7 @@ function App() {
           </div>
           <div>
             <span>Telescope</span>
-            <div class="infoBarGrid">
+            <div className="infoBarGrid">
               <div><span>RA:</span> <span>N/A</span></div>
               <div><span>DEC:</span><span>N/A</span></div>
               <div><span>Target Object:</span><span>N/A</span></div>
@@ -301,8 +402,12 @@ function App() {
               <Weather />
             </div>
           </div>
-          <div className="logContainer">
-          {log.slice(0, 20).map((item, index) => <p key={index} className="logEntry"><span>&gt;</span>{item}</p>)}
+          <div className="logContainer" ref={logContainerRef}>
+          {log.slice(0, 20).map((item, index) => 
+            <p className="logEntry" key={`${item}-${index}`}>
+              <span>&gt;</span> [{new Date(item.date).toLocaleTimeString('en-GB', { hour12: false })}] {item.message}
+            </p>
+          )}
           </div>
         </div>}
         <div className='mainPanel' style={{ minHeight: infoBarHidden ? '97vh' : '75vh' }}>

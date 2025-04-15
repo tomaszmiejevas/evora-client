@@ -23,13 +23,30 @@ export async function getTemperature(setLog) {
   // await is kind of like a dotted line where the interpreter snips the function in two.
   // Everything that would execute after the await keyword is shelved until the network
   // request completes.
-  setLog((prev) => ["[" + new Date().toLocaleTimeString('en-GB', { hour12: false }) + "] Req getTemp", ...prev, ])
+  setLog(prev => [
+    {
+      date: new Date(),
+      message: 'Req getTemp',
+      category: 'Camera',
+      type: 'INFO',
+    },
+    ...prev,
+  ]);
   const response = await fetch(`${baseURL}/getTemperature`);
   // The same applies here - we make another dotted line between trying to read the response
   // body as JSON and the remainder of the function
   const data = await response.json();
 
-  setLog((prev) => ["[" + new Date().toLocaleTimeString('en-GB', { hour12: false }) + "] Res getTemp: " + data.temperature + "°C", ...prev])
+  //setLog((prev) => ["[" + new Date().toLocaleTimeString('en-GB', { hour12: false }) + "] Res getTemp: " + data.temperature + "°C", ...prev])
+  setLog(prev => [
+    {
+      date: new Date(),
+      message: `Res getTemp: ${data.temperature}°C`,
+      category: 'Camera',
+      type: 'INFO',
+    },
+    ...prev,
+  ]);
 
   // Remember that async makes this return a Promise. This return statement "resolves" the
   // promise. If some other part of our code awaits getTemperature(), it will resume after

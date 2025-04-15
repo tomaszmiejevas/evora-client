@@ -365,6 +365,34 @@ input[type=number] {
   width: 95%;
   margin: 0 auto;
   background-color: #1e1e1e;
+  display: flex;
+  flex-direction: column;
+}
+
+.logEntry {
+  font-size: 13px;
+  padding: 5px;
+  text-align: left;
+  opacity: 1;
+  transform: translateY(0);
+  /* animation: fadeIn 0.5s ease-out forwards; */
+}
+
+.logContainer > .logEntry:first-child {
+  padding-top: 10px;
+}
+
+.logEntry span {
+  color: lime;
+  margin-right: 5px;
+}
+
+.logEntry.animate-entry {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.logEntry.slide-down {
+  animation: slideDown 0.3s ease-out forwards;
 }
 
 .logContainer > p {
@@ -373,29 +401,31 @@ input[type=number] {
   text-align: left;
 }
 
-.logContainer > p:first-child {
-  padding-top: 10px;
+.logDownloadBtn {
+  padding: 5px 10px;
 }
 
-.logEntry {
-  opacity: 0;
-  transform: translateY(-10px);
-  animation: fadeIn 0.3s ease-out forwards;
-}
-
-.logEntry span {
-  color: lime;
-  margin-right: 5px;
+.logDownloadBtn:hover {
+  background-color: #cecece !important;
 }
 
 @keyframes fadeIn {
   from {
-      opacity: 0;
-      transform: translateY(-10px);
+    opacity: 0;
+    transform: translateY(-10px);
   }
   to {
-      opacity: 1;
-      transform: translateY(0);
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(var(--entry-height, 27px));
   }
 }
 
