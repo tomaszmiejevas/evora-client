@@ -32,21 +32,41 @@ export async function getTemperature(setLog) {
     },
     ...prev,
   ]);
-  const response = await fetch(`${baseURL}/getTemperature`);
-  // The same applies here - we make another dotted line between trying to read the response
-  // body as JSON and the remainder of the function
-  const data = await response.json();
+  // const response = await fetch(`${baseURL}/getTemperature`);
+  // // The same applies here - we make another dotted line between trying to read the response
+  // // body as JSON and the remainder of the function
+  // const data = await response.json();
+
+  let data;
+
+  try {
+    const response = await fetch(`${baseURL}/getTemperature`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    data = await response.json();
+    setLog(prev => [
+      {
+        date: new Date(),
+        message: `Res getTemp: ${data.temperature}°C`,
+        category: 'Camera',
+        type: 'ERROR',
+      },
+      ...prev,
+    ]);
+  } catch (error) {
+    setLog(prev => [
+      {
+        date: new Date(),
+        message: `Could not get temperature`,
+        category: 'Camera',
+        type: 'ERROR',
+      },
+      ...prev,
+    ]);
+  }
 
   //setLog((prev) => ["[" + new Date().toLocaleTimeString('en-GB', { hour12: false }) + "] Res getTemp: " + data.temperature + "°C", ...prev])
-  setLog(prev => [
-    {
-      date: new Date(),
-      message: `Res getTemp: ${data.temperature}°C`,
-      category: 'Camera',
-      type: 'INFO',
-    },
-    ...prev,
-  ]);
 
   // Remember that async makes this return a Promise. This return statement "resolves" the
   // promise. If some other part of our code awaits getTemperature(), it will resume after

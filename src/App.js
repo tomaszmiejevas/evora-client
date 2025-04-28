@@ -294,7 +294,7 @@ function App() {
     <div className="logContainer" style={{ marginTop: '20px' }}>
       {filteredLog.map((item, index) => 
         <p className="logEntry" key={`${item}-${index}`}>
-          <span>&gt;</span> [{new Date(item.date).toLocaleTimeString('en-GB', { hour12: false })}] {item.type} {item.message}
+          <span>&gt;</span> [{new Date(item.date).toLocaleTimeString('en-GB', { hour12: false })}] <span style={{ color: item.type === "ERROR" ? 'red': 'white'}}>{item.type} {item.message}</span>
         </p>
       )}
     </div>
@@ -405,7 +405,7 @@ useEffect(() => {
           <div className="logContainer" ref={logContainerRef}>
           {log.slice(0, 20).map((item, index) => 
             <p className="logEntry" key={`${item}-${index}`}>
-              <span>&gt;</span> [{new Date(item.date).toLocaleTimeString('en-GB', { hour12: false })}] {item.message}
+              <span>&gt;</span><span style={{ color: item.type === "ERROR" ? 'red': 'white'}}> [{new Date(item.date).toLocaleTimeString('en-GB', { hour12: false })}] {item.message}</span>
             </p>
           )}
           </div>
