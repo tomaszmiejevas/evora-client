@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { initialize, shutdown } from "../apiClient"
+import { useLog } from "../LogProvider";
 import BeatLoader from 'react-spinners/BeatLoader';
 
 /**
  * Displays options ot initialize and shut down andor.
  */
 function OnOff({initialized, setInitialized}) {
+
+    const { setLog } = useLog();
 
     const [initializing, setInitializing] = useState(false);
     const [shuttingDown, setShuttingDown] = useState(false);
@@ -15,7 +18,7 @@ function OnOff({initialized, setInitialized}) {
         console.log("Initializing Andor...");
         setInitializing(true);
 
-        const msg = await initialize();
+        const msg = await initialize(setLog);
         if (msg === false) {
             console.log("Failed to initialize Andor.");
             setFailure(true);
@@ -30,7 +33,7 @@ function OnOff({initialized, setInitialized}) {
         console.log("Shutting down Andor...");
         setShuttingDown(true);
 
-        const msg = await shutdown();
+        const msg = await shutdown(setLog);
         console.log(msg);
         setInitialized(false);
         setShuttingDown(false);

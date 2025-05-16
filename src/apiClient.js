@@ -4,6 +4,19 @@
 // const baseURL = 'http://localhost:3005';  
 const baseURL = '/api'
 
+// Basic logger
+function log(setLog, message, type = 'INFO', category = 'Camera') {
+  setLog(prev => [
+    {
+      date: new Date(),
+      message,
+      category,
+      type,
+    },
+    ...prev,
+  ]);
+}
+
 // Creates a POST request.
 export function buildPostPayload(data) {
   return {
@@ -23,18 +36,10 @@ export async function getTemperature(setLog) {
   // await is kind of like a dotted line where the interpreter snips the function in two.
   // Everything that would execute after the await keyword is shelved until the network
   // request completes.
-  setLog(prev => [
-    {
-      date: new Date(),
-      message: 'Req getTemp',
-      category: 'Camera',
-      type: 'INFO',
-    },
-    ...prev,
-  ]);
+  log(setLog, 'Req getTemp', 'INFO', 'Camera');
   // const response = await fetch(`${baseURL}/getTemperature`);
-  // // The same applies here - we make another dotted line between trying to read the response
-  // // body as JSON and the remainder of the function
+  // The same applies here - we make another dotted line between trying to read the response
+  // body as JSON and the remainder of the function
   // const data = await response.json();
 
   let data;
@@ -45,28 +50,10 @@ export async function getTemperature(setLog) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     data = await response.json();
-    setLog(prev => [
-      {
-        date: new Date(),
-        message: `Res getTemp: ${data.temperature}°C`,
-        category: 'Camera',
-        type: 'ERROR',
-      },
-      ...prev,
-    ]);
+    log(setLog, `Res getTemp: ${data.temperature}°C`, 'INFO', 'Camera');
   } catch (error) {
-    setLog(prev => [
-      {
-        date: new Date(),
-        message: `Could not get temperature`,
-        category: 'Camera',
-        type: 'ERROR',
-      },
-      ...prev,
-    ]);
+    log(setLog, 'Could not get temperature', 'ERROR', 'Camera');
   }
-
-  //setLog((prev) => ["[" + new Date().toLocaleTimeString('en-GB', { hour12: false }) + "] Res getTemp: " + data.temperature + "°C", ...prev])
 
   // Remember that async makes this return a Promise. This return statement "resolves" the
   // promise. If some other part of our code awaits getTemperature(), it will resume after
@@ -75,38 +62,74 @@ export async function getTemperature(setLog) {
   // return await response.json()
 }
 
-export async function initialize() {
-    const response = await fetch(`${baseURL}/initialize`)
-    if (response.status !== 200) {  // if the response was not OK
+export async function initialize(setLog) {
+  log(setLog, 'Req initialize', 'ACTION', 'System');
+
+  try {
+    const response = await fetch(`${baseURL}/initialize`);
+    if (response.status !== 200) {
+      log(setLog, `Initialization failed: ${response.status}`, 'ERROR', 'Camera');
       return false;
     }
-    const data = await response.json()
-    return JSON.stringify(data)
+
+    const data = await response.json();
+    log(setLog, 'Res Initialization successful', 'ACTION', 'Camera');
+    return JSON.stringify(data);
+  } catch (error) {
+    log(setLog, `Initialize error: ${error.message}`, 'ERROR', 'Camera');
+    return false;
+  }
 }
 
-export async function shutdown() {
-    const response = await fetch(`${baseURL}/shutdown`)
-    const data = await response.json()
-    return JSON.stringify(data)
+export async function shutdown(setLog) {
+  log(setLog, 'Req shutdown', 'ACTION', 'Camera');
+  try {
+    const response = await fetch(`${baseURL}/shutdown`);
+    if (!response.ok) {
+      log(setLog, `Shutdown failed: HTTP ${response.status}`, 'ERROR', 'Camera');
+      return false;
+    }
+
+    const data = await response.json();
+    log(setLog, 'Res Shutdown successful', 'ACTION', 'Camera');
+    return JSON.stringify(data);
+  } catch (error) {
+    log(setLog, `Shutdown error: ${error.message}`, 'ERROR', 'Camera');
+    return false;
+  }
 }
 
-export async function setTemperature(input) {
-  //need to pass in input variable into Flask server
-  const response = await fetch(`${baseURL}/setTemperature`, {
-    method: 'POST',
-    body: JSON.stringify({ temperature: input.toString() }),
-    cache: 'no-cache',
-    headers: new Headers({
-      'content-type': 'application/json',
-    }),
-  });
+export async function setTemperature(input, setLog) {
+  log(setLog, `Req setTemperature: ${input} °C`, 'ACTION', 'Camera');
 
-  const data = await response.json();
+  try {
+    const response = await fetch(`${baseURL}/setTemperature`, {
+      method: 'POST',
+      body: JSON.stringify({ temperature: input.toString() }),
+      cache: 'no-cache',
+      headers: new Headers({
+        'content-type': 'application/json',
+      }),
+    });
 
-  return JSON.stringify(data);
+    if (!response.ok) {
+      log(setLog, `setTemperature failed: HTTP ${response.status}`, 'ERROR', 'Camera');
+      return false;
+    }
+
+    const data = await response.json();
+    log(setLog, 'Res setTemperature: success', 'ACTION', 'Camera');
+    return JSON.stringify(data);
+  } catch (error) {
+    log(setLog, `setTemperature error: ${error.message}`, 'ERROR', 'Camera');
+    return false;
+  }
 }
 
-export async function capture(input) {
+export async function capture(input, setLog) {
+  const parsedInput = JSON.parse(input);
+  const { exptime, exptype, imgtype, filtype } = parsedInput;
+  log(setLog, `Capture: ${exptime}s ${exptype}, ${imgtype}, ${filtype}`, 'ACTION', 'Camera');
   const response = await fetch(`${baseURL}/capture`, {
     method: 'POST',
     body: JSON.stringify(input),
@@ -128,6 +151,7 @@ export async function abort() {
 }
 
 export async function setFilter(input) {
+  console.log("started")
   const response = await fetch(`${baseURL}/setFilter`, {
     method: 'POST',
     body: JSON.stringify(input),
@@ -138,6 +162,8 @@ export async function setFilter(input) {
   });
 
   const data = await response.json();
+
+  console.log("successful");
 
   return data;
 }
@@ -151,7 +177,6 @@ export async function getStatusTEC() {
 }
 
 export async function getStatus() {
-  const endLog = `[${new Date().toLocaleString()}] "GET /getStatus HTTP/1.1" ${response.status} - Response: ${JSON.stringify(data)}`;
   const response = await fetch(`${baseURL}/getStatus`);
   const data = await response.json();
   return JSON.stringify(data);

@@ -11,7 +11,7 @@ import "chart.js/auto";
  */
 function GetTemp({ currTemp, setCurrTemp, isDisabled }) {
 
-  const { log, setLog } = useLog();
+  const { setLog } = useLog();
 
   let NUM_OF_DATA_POINTS = 20;
   let tempMessage = <span className='tempMessage'>Current Temperature: -999 °C</span>;

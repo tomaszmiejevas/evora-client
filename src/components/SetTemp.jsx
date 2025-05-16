@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form"
 import { setTemperature } from "../apiClient";
+import { useLog } from "../LogProvider";
 
 /**
  * Displays a field to input a set temperature to the camera.
@@ -7,6 +8,7 @@ import { setTemperature } from "../apiClient";
 function SetTemp({temp, setTemp, isDisabled}) {
 
     const {register, handleSubmit} = useForm()
+    const { setLog } = useLog();
 
     // Remove this? "defined but never used"
     async function callSetTemperature(value) {
@@ -20,7 +22,7 @@ function SetTemp({temp, setTemp, isDisabled}) {
       if (isNaN(val)){
           console.log('Not A Number')
       } else {
-        const response = await setTemperature(val);
+        const response = await setTemperature(val, setLog);
 
         if (response === '-999') {  // -999 is an error code from the server
           console.log('Temperature out of range!');

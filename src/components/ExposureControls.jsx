@@ -1,6 +1,7 @@
 import { capture, abort } from "../apiClient"
 import { set, useForm } from "react-hook-form"
 import {useEffect, useState} from "react"
+import { useLog } from "../LogProvider";
 
 
 /**
@@ -22,6 +23,7 @@ function ExposureControls({ exposureType, imageType, filterType, setDisplayedIma
     const [seriesExposures, setSeriesExposures] = useState([])
 
     const {register, handleSubmit} = useForm()
+    const { setLog } = useLog();
 
     // For timer/loading bar
     const [time, setTime] = useState(undefined);  // progress bar progress
@@ -69,7 +71,7 @@ function ExposureControls({ exposureType, imageType, filterType, setDisplayedIma
 
         setIsExposing(true)
 
-        const message = await capture(JSON.stringify(data))
+        const message = await capture(JSON.stringify(data), setLog)
 
         setIsExposing(false)
 

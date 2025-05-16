@@ -226,8 +226,6 @@ function App() {
 
   const selectedCategories = logFilterLabels.filter((_, i) => active[i]);
 
-  console.log(selectedCategories)
-
   const filteredLog = log.filter(item => {
     const ageInHours = (Date.now() - new Date(item.date)) / (1000 * 60 * 60);
     const matchesCategory = selectedCategories.includes(item.category);
